@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Case Opener Game</title>
+    <title>Gift Case Opener</title>
     <style>
         * {
             box-sizing: border-box;
@@ -110,9 +110,6 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .open-case-btn:active {
-            opacity: 0.8;
-        }
 
         /* Вікно рулетки */
         .roulette-overlay {
@@ -157,8 +154,7 @@
         .spinner-track {
             display: flex;
             position: absolute;
-            left: 0;
-            top: 0;
+            left: 0; top: 0;
             height: 100%;
             will-change: transform;
         }
@@ -176,6 +172,19 @@
             font-size: 12px;
             margin-top: 4px;
             font-weight: bold;
+        }
+
+        /* Кнопка зв'язку з адміном у модалці */
+        .claim-btn {
+            display: none;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 14px;
         }
 
         /* Інвентар */
@@ -260,23 +269,15 @@
 
         <!-- ВКЛАДКА 1: КЕЙСИ -->
         <div id="tab-cases" class="tab-content active">
-            <div class="section-title">Доступні кейси</div>
+            <div class="section-title">Кейси з подарунками</div>
             <div class="cases-grid">
                 
                 <div class="case-card">
                     <div class="case-info">
-                        <h4>📦 Звичайний кейс</h4>
-                        <p>Ціна: 200 🪙</p>
+                        <h4>🎁 Кейс з подарунками</h4>
+                        <p>Ціна: 300 🪙</p>
                     </div>
-                    <button class="open-case-btn" onclick="openCase('common')">Відкрити</button>
-                </div>
-
-                <div class="case-card">
-                    <div class="case-info">
-                        <h4>💎 Елітний кейс</h4>
-                        <p>Ціна: 800 🪙</p>
-                    </div>
-                    <button class="open-case-btn" onclick="openCase('elite')">Відкрити</button>
+                    <button class="open-case-btn" onclick="openCase('gift')">Відкрити</button>
                 </div>
 
             </div>
@@ -284,9 +285,9 @@
 
         <!-- ВКЛАДКА 2: ІНВЕНТАР -->
         <div id="tab-inventory" class="tab-content">
-            <div class="section-title">Мій інвентар</div>
+            <div class="section-title">Виграні призи</div>
             <div class="inventory-grid" id="inventory-list">
-                <!-- Сюди динамічно додаються виграні предмети -->
+                <!-- Сюди додаються призи -->
             </div>
         </div>
 
@@ -301,58 +302,51 @@
                 <div class="spinner-track" id="spinnerTrack"></div>
             </div>
             <p id="winResultText" style="font-size: 15px; font-weight: bold; color: #facc15; margin-top: 15px;"></p>
+            <a id="claimBtn" class="claim-btn" href="#" target="_blank">📲 Забрати приз (написати адміну)</a>
+            <button id="closeModalBtn" style="background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-top: 15px; cursor: pointer; display: none;" onclick="closeOverlay()">Закрити</button>
         </div>
     </div>
 
     <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('cases', this)">
-            <span class="nav-icon">📦</span>
+            <span class="nav-icon">🎁</span>
             <span>Кейси</span>
         </button>
         <button class="nav-item" onclick="switchTab('inventory', this)">
-            <span class="nav-icon">🎒</span>
-            <span>Інвентар</span>
+            <span class="nav-icon">🏆</span>
+            <span>Призи</span>
         </button>
     </div>
 </div>
 
 <script>
-    // Дані гри
-    let money = parseInt(localStorage.getItem('case_money')) || 1000;
-    let inventory = JSON.parse(localStorage.getItem('case_inventory')) || [];
+    // ВСТАВ СВІЙ ТЕЛЕГРАМ НІКНЕЙМ ТУТ (без @)
+    const ADMIN_USERNAME = "ваш_телеграм_нік";
 
-    // Предмети для Звичайного кейсу
-    const commonItems = [
-        { name: "Перука", color: "#94a3b8", price: 50, icon: "🧢" },
-        { name: "Ржавий ніж", color: "#94a3b8", price: 120, icon: "🔪" },
-        { name: "Пістолет", color: "#38bdf8", price: 300, icon: "🔫" },
-        { name: "Кастет", color: "#38bdf8", price: 450, icon: "🥊" },
-        { name: "Золотий годинник", color: "#a855f7", price: 900, icon: "⌚" }
-    ];
+    let money = parseInt(localStorage.getItem('gift_money')) || 1000;
+    let inventory = JSON.parse(localStorage.getItem('gift_inventory')) || [];
 
-    // Предмети для Елітного кейсу
-    const eliteItems = [
-        { name: "Тактичний ніж", color: "#38bdf8", price: 400, icon: "🗡️" },
-        { name: "Автомат AK", color: "#a855f7", price: 1200, icon: "🔥" },
-        { name: "Снайперка", color: "#a855f7", price: 2000, icon: "🎯" },
-        { name: "Драконячий клинок", color: "#facc15", price: 5000, icon: "🐉" }
+    // Список подарунків у кейсі (тут картинки/емодзі і назви)
+    const giftItems = [
+        { name: "Звичайний стікер", color: "#94a3b8", price: 50, icon: "🧸", isRealGift: false },
+        { name: "Міні-сердечко", color: "#38bdf8", price: 150, icon: "💖", isRealGift: false },
+        { name: "Зірочка Telegram", color: "#a855f7", price: 400, icon: "⭐", isRealGift: true },
+        { name: "Елітний подарунок", color: "#facc15", price: 1500, icon: "💎", isRealGift: true }
     ];
 
     function updateUI() {
         document.getElementById('ui-money').innerText = money;
-        localStorage.setItem('case_money', money);
-        localStorage.setItem('case_inventory', JSON.stringify(inventory));
+        localStorage.setItem('gift_money', money);
+        localStorage.setItem('gift_inventory', JSON.stringify(inventory));
         renderInventory();
     }
 
-    // Заробіток кліком
     function earnMoney() {
         money += 50;
         updateUI();
     }
 
-    // Перемикання вкладок
     function switchTab(tabId, element) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -361,13 +355,10 @@
         element.classList.add('active');
     }
 
-    // Відкриття кейсу
     function openCase(type) {
-        const price = type === 'common' ? 200 : 800;
-        const itemsList = type === 'common' ? commonItems : eliteItems;
-
+        const price = 300;
         if (money < price) {
-            alert('Недостатньо монет! Натисніть «+ Заробити»');
+            alert('Недостатньо монет! Заробіть кнопкою вище.');
             return;
         }
 
@@ -377,14 +368,18 @@
         const overlay = document.getElementById('rouletteOverlay');
         const track = document.getElementById('spinnerTrack');
         const resultText = document.getElementById('winResultText');
+        const claimBtn = document.getElementById('claimBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
         resultText.innerText = "";
+        claimBtn.style.display = 'none';
+        closeModalBtn.style.display = 'none';
         overlay.style.display = 'flex';
 
-        // Формуємо стрічку рулетки (50 елементів для довгої прокрутки)
         let html = '';
         let generatedItems = [];
         for (let i = 0; i < 50; i++) {
-            let randItem = itemsList[Math.floor(Math.random() * itemsList.length)];
+            let randItem = giftItems[Math.floor(Math.random() * giftItems.length)];
             generatedItems.push(randItem);
             html += `
                 <div class="spinner-item" style="border-color: ${randItem.color}">
@@ -395,12 +390,10 @@
         }
         track.innerHTML = html;
 
-        // Виграшний елемент буде приблизно на 42-й позиції
         let winningIndex = 42;
         let winningItem = generatedItems[winningIndex];
 
-        // Анімація прокрутки
-        let itemWidth = 100; // ширина одного блоку в px
+        let itemWidth = 100;
         let centerOffset = (400 / 2) - (itemWidth / 2);
         let targetX = -(winningIndex * itemWidth) + centerOffset + (Math.random() * 60 - 30);
 
@@ -412,24 +405,33 @@
             track.style.transform = `translateX(${targetX}px)`;
         }, 50);
 
-        // Завершення прокрутки
         setTimeout(() => {
-            resultText.innerText = `Ви виграли: ${winningItem.name} (${winningItem.price} 🪙)!`;
-            inventory.push({ ...winningItem, id: Date.now() });
+            let uniqueId = Math.floor(100000 + Math.random() * 900000); // унікальний номер виграшу
+            resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span>`;
+            
+            // Додаємо в інвентар
+            inventory.push({ ...winningItem, id: uniqueId });
             updateUI();
 
-            // Закриваємо вікно через 2 секунди
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 2000);
+            // Якщо це реальний подарунок — показуємо кнопку написати адміну з готовим текстом
+            if (winningItem.isRealGift) {
+                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі подарунок: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
+                claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
+                claimBtn.style.display = 'inline-block';
+            }
+
+            closeModalBtn.style.display = 'inline-block';
         }, 4200);
     }
 
-    // Відображення інвентарю
+    function closeOverlay() {
+        document.getElementById('rouletteOverlay').style.display = 'none';
+    }
+
     function renderInventory() {
         const list = document.getElementById('inventory-list');
         if (inventory.length === 0) {
-            list.innerHTML = `<p style="color: #94a3b8; grid-column: span 2; text-align: center; padding: 20px;">Інвентар порожній. Відкрийте свій перший кейс!</p>`;
+            list.innerHTML = `<p style="color: #94a3b8; grid-column: span 2; text-align: center; padding: 20px;">Поки що пусто. Відкрийте кейс!</p>`;
             return;
         }
 
@@ -437,20 +439,19 @@
             <div class="inventory-item" style="border-color: ${item.color}">
                 <span style="font-size: 32px;">${item.icon}</span>
                 <div class="item-name" style="color: ${item.color}">${item.name}</div>
-                <div style="font-size: 12px; color: #94a3b8;">Ціна: ${item.price} 🪙</div>
-                <button class="sell-btn" onclick="sellItem(${index})">Продати</button>
+                <div style="font-size: 11px; color: #94a3b8;">ID: #${item.id}</div>
+                ${item.isRealGift ? '<span style="font-size:10px; color:#22c55e; font-weight:bold; margin-top:2px;">🎁 Реальний приз</span>' : ''}
+                <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}🪙</button>
             </div>
         `).join('');
     }
 
-    // Продаж предмета з інвентарю
     function sellItem(index) {
         money += inventory[index].price;
         inventory.splice(index, 1);
         updateUI();
     }
 
-    // Перший запуск
     updateUI();
 </script>
 
