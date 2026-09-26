@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bear Case Opener</title>
+    <title>Case Opener</title>
     <style>
         * {
             box-sizing: border-box;
@@ -258,7 +258,7 @@
 <div class="app-container">
     <div class="content">
         
-        <!-- БАЛАНС ЗВЕРХУ (У ЗІРКАХ) -->
+        <!-- БАЛАНС ЗВЕРХУ -->
         <div class="header-stats">
             <div>
                 <div style="font-size: 12px; color: #94a3b8;">Баланс зірок</div>
@@ -269,7 +269,7 @@
 
         <!-- ВКЛАДКА 1: КЕЙСИ -->
         <div id="tab-cases" class="tab-content active">
-            <div class="section-title">Ведмежий кейс</div>
+            <div class="section-title">Головний кейс</div>
             <div class="cases-grid">
                 
                 <div class="case-card">
@@ -302,7 +302,7 @@
                 <div class="spinner-track" id="spinnerTrack"></div>
             </div>
             <p id="winResultText" style="font-size: 15px; font-weight: bold; color: #facc15; margin-top: 15px;"></p>
-            <a id="claimBtn" class="claim-btn" href="#" target="_blank">📲 Забрати приз (написати адміну)</a>
+            <a id="claimBtn" class="claim-btn" href="#" target="_blank">📲 Забрати приз у адміна</a>
             <button id="closeModalBtn" style="background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-top: 15px; cursor: pointer; display: none;" onclick="closeOverlay()">Закрити</button>
         </div>
     </div>
@@ -324,26 +324,23 @@
     // ВСТАВ СВІЙ ТЕЛЕГРАМ НІКНЕЙМ ТУТ (без @)
     const ADMIN_USERNAME = "ваш_телеграм_нік";
 
-    let stars = parseInt(localStorage.getItem('bear_stars')) || 100;
-    let inventory = JSON.parse(localStorage.getItem('bear_inventory')) || [];
+    let stars = parseInt(localStorage.getItem('case_stars')) || 100;
+    let inventory = JSON.parse(localStorage.getItem('case_inventory')) || [];
 
-    // Список предметів у кейсі
-    const giftItems = [
-        // Зірки (одразу летять на баланс)
-        { name: "+5 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 5 },
-        { name: "+10 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 10 },
-        { name: "+15 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 15 },
-        
-        // Предмети (йдуть в інвентар, можна забрати у адміна або продати)
-        { name: "Ведмідь", color: "#facc15", price: 15, icon: "🐻", type: "item", isRealGift: true },
-        { name: "Сердце", color: "#ef4444", price: 15, icon: "💝", type: "item", isRealGift: true },
-        { name: "Ракета", color: "#a855f7", price: 50, icon: "🚀", type: "item", isRealGift: true }
+    // Чіткий список усіх можливих призів
+    const allPrizes = [
+        { id: 'star5', name: '+5 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 5 },
+        { id: 'star10', name: '+10 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 10 },
+        { id: 'star15', name: '+15 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 15 },
+        { id: 'bear', name: 'Ведмідь', color: '#facc15', icon: '🐻', type: 'item', price: 15 },
+        { id: 'heart', name: 'Сердце', color: '#ef4444', icon: '💝', type: 'item', price: 15 },
+        { id: 'rocket', name: 'Ракета', color: '#a855f7', icon: '🚀', type: 'item', price: 50 }
     ];
 
     function updateUI() {
         document.getElementById('ui-stars').innerText = stars;
-        localStorage.setItem('bear_stars', stars);
-        localStorage.setItem('bear_inventory', JSON.stringify(inventory));
+        localStorage.setItem('case_stars', stars);
+        localStorage.setItem('case_inventory', JSON.stringify(inventory));
         renderInventory();
     }
 
@@ -361,13 +358,13 @@
     }
 
     function openCase() {
-        const price = 20; // Ціна кейсу в зірках
-        if (stars < price) {
-            alert('Недостатньо зірок! Натисніть "+ Безкоштовно", щоб отримати зірки.');
+        const casePrice = 20;
+        if (stars < casePrice) {
+            alert('Недостатньо зірок! Натисніть "+ Безкоштовно".');
             return;
         }
 
-        stars -= price;
+        stars -= casePrice;
         updateUI();
 
         const overlay = document.getElementById('rouletteOverlay');
@@ -381,20 +378,22 @@
         closeModalBtn.style.display = 'none';
         overlay.style.display = 'flex';
 
-        let html = '';
+        // Формуємо стрічку рулетки з випадкових призів
         let generatedItems = [];
+        let html = '';
         for (let i = 0; i < 50; i++) {
-            let randItem = giftItems[Math.floor(Math.random() * giftItems.length)];
-            generatedItems.push(randItem);
+            let randPrize = allPrizes[Math.floor(Math.random() * allPrizes.length)];
+            generatedItems.push(randPrize);
             html += `
-                <div class="spinner-item" style="border-color: ${randItem.color}">
-                    <span style="font-size: 28px;">${randItem.icon}</span>
-                    <span style="color: ${randItem.color}">${randItem.name}</span>
+                <div class="spinner-item" style="border-color: ${randPrize.color}">
+                    <span style="font-size: 28px;">${randPrize.icon}</span>
+                    <span style="color: ${randPrize.color}">${randPrize.name}</span>
                 </div>
             `;
         }
         track.innerHTML = html;
 
+        // Визначаємо точний виграшний елемент на позиції 42
         let winningIndex = 42;
         let winningItem = generatedItems[winningIndex];
 
@@ -410,21 +409,26 @@
             track.style.transform = `translateX(${targetX}px)`;
         }, 50);
 
+        // Після завершення анімації видаємо суто те, що зупинилося на стрілці
         setTimeout(() => {
-            if (winningItem.type === "stars") {
-                // Якщо випали зірки — одразу зараховуємо на баланс
+            if (winningItem.type === 'stars') {
                 stars += winningItem.value;
                 updateUI();
                 resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (зараховано на баланс!)`;
             } else {
-                // Якщо випав предмет (Ведмідь, Сердце, Ракета) — додаємо в інвентар
                 let uniqueId = Math.floor(100000 + Math.random() * 900000);
                 resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (додано в інвентар!)`;
                 
-                inventory.push({ ...winningItem, id: uniqueId });
+                inventory.push({
+                    name: winningItem.name,
+                    icon: winningItem.icon,
+                    color: winningItem.color,
+                    price: winningItem.price,
+                    id: uniqueId
+                });
                 updateUI();
 
-                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі приз: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
+                let msg = encodeURIComponent(`Привіт! Я виграв у грі приз: ${winningItem.name} (ID: #${uniqueId}). Чекаю на видачу!`);
                 claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
                 claimBtn.style.display = 'inline-block';
             }
@@ -449,7 +453,7 @@
                 <span style="font-size: 32px;">${item.icon}</span>
                 <div class="item-name" style="color: ${item.color}">${item.name}</div>
                 <div style="font-size: 11px; color: #94a3b8;">ID: #${item.id}</div>
-                <a href="https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent(`Привіт! Я хочу забрати свій приз: ${item.name} (ID: #${item.id})`)}" target="_blank" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:5px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px;">Забрати у адміна</a>
+                <a href="https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent(`Привіт! Забираю свій приз: ${item.name} (ID: #${item.id})`)}" target="_blank" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:5px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px;">Забрати у адміна</a>
                 <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}⭐</button>
             </div>
         `).join('');
