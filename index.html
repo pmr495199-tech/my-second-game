@@ -285,7 +285,7 @@
 
         <!-- ВКЛАДКА 2: ІНВЕНТАР -->
         <div id="tab-inventory" class="tab-content">
-            <div class="section-title">Мій інвентар (Ведмеді та речі)</div>
+            <div class="section-title">Мій інвентар</div>
             <div class="inventory-grid" id="inventory-list">
                 <!-- Сюди додаються призи -->
             </div>
@@ -334,13 +334,9 @@
         { name: "+10 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 10 },
         { name: "+15 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 15 },
         
-        // Ведмідь (15 зірок вартість продажу)
+        // Предмети (йдуть в інвентар, можна забрати у адміна або продати)
         { name: "Ведмідь", color: "#facc15", price: 15, icon: "🐻", type: "item", isRealGift: true },
-        
-        // Сердце (15 зірок вартість продажу)
         { name: "Сердце", color: "#ef4444", price: 15, icon: "💝", type: "item", isRealGift: true },
-        
-        // Ракета (50 зірок вартість продажу)
         { name: "Ракета", color: "#a855f7", price: 50, icon: "🚀", type: "item", isRealGift: true }
     ];
 
@@ -423,16 +419,14 @@
             } else {
                 // Якщо випав предмет (Ведмідь, Сердце, Ракета) — додаємо в інвентар
                 let uniqueId = Math.floor(100000 + Math.random() * 900000);
-                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span>`;
+                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (додано в інвентар!)`;
                 
                 inventory.push({ ...winningItem, id: uniqueId });
                 updateUI();
 
-                if (winningItem.isRealGift) {
-                    let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі приз: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
-                    claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
-                    claimBtn.style.display = 'inline-block';
-                }
+                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі приз: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
+                claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
+                claimBtn.style.display = 'inline-block';
             }
 
             closeModalBtn.style.display = 'inline-block';
@@ -455,7 +449,7 @@
                 <span style="font-size: 32px;">${item.icon}</span>
                 <div class="item-name" style="color: ${item.color}">${item.name}</div>
                 <div style="font-size: 11px; color: #94a3b8;">ID: #${item.id}</div>
-                ${item.isRealGift ? '<span style="font-size:10px; color:#22c55e; font-weight:bold; margin-top:2px;">🎁 Реальний приз</span>' : ''}
+                <a href="https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent(`Привіт! Я хочу забрати свій приз: ${item.name} (ID: #${item.id})`)}" target="_blank" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:5px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px;">Забрати у адміна</a>
                 <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}⭐</button>
             </div>
         `).join('');
