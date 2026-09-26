@@ -269,15 +269,15 @@
 
         <!-- ВКЛАДКА 1: КЕЙСИ -->
         <div id="tab-cases" class="tab-content active">
-            <div class="section-title">Ведмежі кейси</div>
+            <div class="section-title">Ведмежий кейс</div>
             <div class="cases-grid">
                 
                 <div class="case-card">
                     <div class="case-info">
-                        <h4>🐻 Ведмідь-кейс</h4>
-                        <p>Ціна: 30 ⭐</p>
+                        <h4>🎁 Кейс з призами</h4>
+                        <p>Ціна: 20 ⭐</p>
                     </div>
-                    <button class="open-case-btn" onclick="openCase('gift')">Відкрити</button>
+                    <button class="open-case-btn" onclick="openCase()">Відкрити</button>
                 </div>
 
             </div>
@@ -285,7 +285,7 @@
 
         <!-- ВКЛАДКА 2: ІНВЕНТАР -->
         <div id="tab-inventory" class="tab-content">
-            <div class="section-title">Мої ведмеді</div>
+            <div class="section-title">Мій інвентар (Ведмеді та речі)</div>
             <div class="inventory-grid" id="inventory-list">
                 <!-- Сюди додаються призи -->
             </div>
@@ -310,7 +310,7 @@
     <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('cases', this)">
-            <span class="nav-icon">🐻</span>
+            <span class="nav-icon">🎁</span>
             <span>Кейси</span>
         </button>
         <button class="nav-item" onclick="switchTab('inventory', this)">
@@ -327,12 +327,21 @@
     let stars = parseInt(localStorage.getItem('bear_stars')) || 100;
     let inventory = JSON.parse(localStorage.getItem('bear_inventory')) || [];
 
-    // Список виключно з ведмедями
+    // Список предметів у кейсі
     const giftItems = [
-        { name: "Малий ведмідь", color: "#94a3b8", price: 5, icon: "🐻", isRealGift: false },
-        { name: "Бурий ведмідь", color: "#38bdf8", price: 15, icon: "🐻", isRealGift: false },
-        { name: "Грізлі", color: "#a855f7", price: 40, icon: "🐻", isRealGift: true },
-        { name: "Золотий ведмідь", color: "#facc15", price: 150, icon: "🐻", isRealGift: true }
+        // Зірки (одразу летять на баланс)
+        { name: "+5 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 5 },
+        { name: "+10 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 10 },
+        { name: "+15 зірок", color: "#38bdf8", icon: "⭐", type: "stars", value: 15 },
+        
+        // Ведмідь (15 зірок вартість продажу)
+        { name: "Ведмідь", color: "#facc15", price: 15, icon: "🐻", type: "item", isRealGift: true },
+        
+        // Сердце (15 зірок вартість продажу)
+        { name: "Сердце", color: "#ef4444", price: 15, icon: "💝", type: "item", isRealGift: true },
+        
+        // Ракета (50 зірок вартість продажу)
+        { name: "Ракета", color: "#a855f7", price: 50, icon: "🚀", type: "item", isRealGift: true }
     ];
 
     function updateUI() {
@@ -355,8 +364,8 @@
         element.classList.add('active');
     }
 
-    function openCase(type) {
-        const price = 30; // Ціна кейсу в зірках
+    function openCase() {
+        const price = 20; // Ціна кейсу в зірках
         if (stars < price) {
             alert('Недостатньо зірок! Натисніть "+ Безкоштовно", щоб отримати зірки.');
             return;
@@ -406,16 +415,24 @@
         }, 50);
 
         setTimeout(() => {
-            let uniqueId = Math.floor(100000 + Math.random() * 900000);
-            resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span>`;
-            
-            inventory.push({ ...winningItem, id: uniqueId });
-            updateUI();
+            if (winningItem.type === "stars") {
+                // Якщо випали зірки — одразу зараховуємо на баланс
+                stars += winningItem.value;
+                updateUI();
+                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (зараховано на баланс!)`;
+            } else {
+                // Якщо випав предмет (Ведмідь, Сердце, Ракета) — додаємо в інвентар
+                let uniqueId = Math.floor(100000 + Math.random() * 900000);
+                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span>`;
+                
+                inventory.push({ ...winningItem, id: uniqueId });
+                updateUI();
 
-            if (winningItem.isRealGift) {
-                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі ведмедя: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
-                claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
-                claimBtn.style.display = 'inline-block';
+                if (winningItem.isRealGift) {
+                    let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі приз: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
+                    claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
+                    claimBtn.style.display = 'inline-block';
+                }
             }
 
             closeModalBtn.style.display = 'inline-block';
