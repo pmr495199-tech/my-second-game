@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gift Case Opener</title>
+    <title>Bear Case Opener</title>
     <style>
         * {
             box-sizing: border-box;
@@ -258,24 +258,24 @@
 <div class="app-container">
     <div class="content">
         
-        <!-- БАЛАНС ЗВЕРХУ -->
+        <!-- БАЛАНС ЗВЕРХУ (У ЗІРКАХ) -->
         <div class="header-stats">
             <div>
-                <div style="font-size: 12px; color: #94a3b8;">Баланс</div>
-                <div class="balance-box"><span id="ui-money">1000</span> 🪙</div>
+                <div style="font-size: 12px; color: #94a3b8;">Баланс зірок</div>
+                <div class="balance-box"><span id="ui-stars">100</span> ⭐</div>
             </div>
-            <button class="earn-btn" onclick="earnMoney()">+ Заробити</button>
+            <button class="earn-btn" onclick="earnStars()">+ Безкоштовно</button>
         </div>
 
         <!-- ВКЛАДКА 1: КЕЙСИ -->
         <div id="tab-cases" class="tab-content active">
-            <div class="section-title">Кейси з подарунками</div>
+            <div class="section-title">Ведмежі кейси</div>
             <div class="cases-grid">
                 
                 <div class="case-card">
                     <div class="case-info">
-                        <h4>🎁 Кейс з подарунками</h4>
-                        <p>Ціна: 300 🪙</p>
+                        <h4>🐻 Ведмідь-кейс</h4>
+                        <p>Ціна: 30 ⭐</p>
                     </div>
                     <button class="open-case-btn" onclick="openCase('gift')">Відкрити</button>
                 </div>
@@ -285,7 +285,7 @@
 
         <!-- ВКЛАДКА 2: ІНВЕНТАР -->
         <div id="tab-inventory" class="tab-content">
-            <div class="section-title">Виграні призи</div>
+            <div class="section-title">Мої ведмеді</div>
             <div class="inventory-grid" id="inventory-list">
                 <!-- Сюди додаються призи -->
             </div>
@@ -310,12 +310,12 @@
     <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('cases', this)">
-            <span class="nav-icon">🎁</span>
+            <span class="nav-icon">🐻</span>
             <span>Кейси</span>
         </button>
         <button class="nav-item" onclick="switchTab('inventory', this)">
             <span class="nav-icon">🏆</span>
-            <span>Призи</span>
+            <span>Інвентар</span>
         </button>
     </div>
 </div>
@@ -324,26 +324,26 @@
     // ВСТАВ СВІЙ ТЕЛЕГРАМ НІКНЕЙМ ТУТ (без @)
     const ADMIN_USERNAME = "ваш_телеграм_нік";
 
-    let money = parseInt(localStorage.getItem('gift_money')) || 1000;
-    let inventory = JSON.parse(localStorage.getItem('gift_inventory')) || [];
+    let stars = parseInt(localStorage.getItem('bear_stars')) || 100;
+    let inventory = JSON.parse(localStorage.getItem('bear_inventory')) || [];
 
-    // Список подарунків у кейсі (тут картинки/емодзі і назви)
+    // Список виключно з ведмедями
     const giftItems = [
-        { name: "Звичайний стікер", color: "#94a3b8", price: 50, icon: "🧸", isRealGift: false },
-        { name: "Міні-сердечко", color: "#38bdf8", price: 150, icon: "💖", isRealGift: false },
-        { name: "Зірочка Telegram", color: "#a855f7", price: 400, icon: "⭐", isRealGift: true },
-        { name: "Елітний подарунок", color: "#facc15", price: 1500, icon: "💎", isRealGift: true }
+        { name: "Малий ведмідь", color: "#94a3b8", price: 5, icon: "🐻", isRealGift: false },
+        { name: "Бурий ведмідь", color: "#38bdf8", price: 15, icon: "🐻", isRealGift: false },
+        { name: "Грізлі", color: "#a855f7", price: 40, icon: "🐻", isRealGift: true },
+        { name: "Золотий ведмідь", color: "#facc15", price: 150, icon: "🐻", isRealGift: true }
     ];
 
     function updateUI() {
-        document.getElementById('ui-money').innerText = money;
-        localStorage.setItem('gift_money', money);
-        localStorage.setItem('gift_inventory', JSON.stringify(inventory));
+        document.getElementById('ui-stars').innerText = stars;
+        localStorage.setItem('bear_stars', stars);
+        localStorage.setItem('bear_inventory', JSON.stringify(inventory));
         renderInventory();
     }
 
-    function earnMoney() {
-        money += 50;
+    function earnStars() {
+        stars += 10;
         updateUI();
     }
 
@@ -356,13 +356,13 @@
     }
 
     function openCase(type) {
-        const price = 300;
-        if (money < price) {
-            alert('Недостатньо монет! Заробіть кнопкою вище.');
+        const price = 30; // Ціна кейсу в зірках
+        if (stars < price) {
+            alert('Недостатньо зірок! Натисніть "+ Безкоштовно", щоб отримати зірки.');
             return;
         }
 
-        money -= price;
+        stars -= price;
         updateUI();
 
         const overlay = document.getElementById('rouletteOverlay');
@@ -406,16 +406,14 @@
         }, 50);
 
         setTimeout(() => {
-            let uniqueId = Math.floor(100000 + Math.random() * 900000); // унікальний номер виграшу
+            let uniqueId = Math.floor(100000 + Math.random() * 900000);
             resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span>`;
             
-            // Додаємо в інвентар
             inventory.push({ ...winningItem, id: uniqueId });
             updateUI();
 
-            // Якщо це реальний подарунок — показуємо кнопку написати адміну з готовим текстом
             if (winningItem.isRealGift) {
-                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі подарунок: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
+                let msg = encodeURIComponent(`Привіт! Я виграв у твоїй грі ведмедя: ${winningItem.name} (ID виграшу: #${uniqueId}). Чекаю на видачу!`);
                 claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
                 claimBtn.style.display = 'inline-block';
             }
@@ -441,13 +439,13 @@
                 <div class="item-name" style="color: ${item.color}">${item.name}</div>
                 <div style="font-size: 11px; color: #94a3b8;">ID: #${item.id}</div>
                 ${item.isRealGift ? '<span style="font-size:10px; color:#22c55e; font-weight:bold; margin-top:2px;">🎁 Реальний приз</span>' : ''}
-                <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}🪙</button>
+                <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}⭐</button>
             </div>
         `).join('');
     }
 
     function sellItem(index) {
-        money += inventory[index].price;
+        stars += inventory[index].price;
         inventory.splice(index, 1);
         updateUI();
     }
