@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Case Opener</title>
+    <title>Колесо Фортуни</title>
     <style>
         * {
             box-sizing: border-box;
@@ -72,46 +72,78 @@
             transform: scale(0.95);
         }
 
-        /* Список кейсів */
+        /* Заголовок */
         .section-title {
             font-size: 18px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             color: #38bdf8;
-        }
-        .cases-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        .case-card {
-            background: #1e293b;
-            border: 2px solid #334155;
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .case-info h4 {
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-        .case-info p {
-            font-size: 13px;
-            color: #94a3b8;
-        }
-        .open-case-btn {
-            background: #facc15;
-            color: #78350f;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
+            text-align: center;
         }
 
-        /* Вікно рулетки */
+        /* КОЛЕСО ФОРТУНИ */
+        .wheel-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 24px solid #ef4444;
+            z-index: 10;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 5px solid #334155;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.15, 0.85, 0.15, 1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: conic-gradient(
+                #38bdf8 0deg 180deg,    /* 1 зірка - 50% */
+                #a855f7 180deg 288deg,   /* 3 зірки - 30% */
+                #22c55e 288deg 360deg    /* Охоплює решту секторів з картинками */
+            );
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #facc15, #f59e0b);
+            color: #78350f;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(250, 204, 21, 0.3);
+            transition: transform 0.1s;
+        }
+        .spin-btn:active {
+            transform: scale(0.95);
+        }
+        .spin-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Модальне вікно результату */
         .roulette-overlay {
             display: none;
             position: fixed;
@@ -125,56 +157,13 @@
         }
         .roulette-window {
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
             background: #1e293b;
             border: 2px solid #475569;
             border-radius: 20px;
             padding: 20px;
             text-align: center;
-            position: relative;
         }
-        .spinner-container {
-            width: 100%;
-            height: 110px;
-            background: #0f172a;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            margin: 20px 0;
-            border: 2px solid #334155;
-        }
-        .spinner-pointer {
-            position: absolute;
-            top: 0; bottom: 0; left: 50%;
-            width: 3px;
-            background: #ef4444;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-        .spinner-track {
-            display: flex;
-            position: absolute;
-            left: 0; top: 0;
-            height: 100%;
-            will-change: transform;
-        }
-        .spinner-item {
-            min-width: 100px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-right: 1px solid #334155;
-            padding: 5px;
-        }
-        .spinner-item span {
-            font-size: 12px;
-            margin-top: 4px;
-            font-weight: bold;
-        }
-
-        /* Кнопка зв'язку з адміном у модалці */
         .claim-btn {
             display: none;
             background: #2563eb;
@@ -202,6 +191,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            align-items: center;
+        }
+        .item-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
         }
         .item-name {
             font-size: 14px;
@@ -218,6 +213,7 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 5px;
+            width: 100%;
         }
 
         /* Нижня панель навігації */
@@ -267,19 +263,16 @@
             <button class="earn-btn" onclick="earnStars()">+ Безкоштовно</button>
         </div>
 
-        <!-- ВКЛАДКА 1: КЕЙСИ -->
+        <!-- ВКЛАДКА 1: КОЛЕСО ФОРТУНИ -->
         <div id="tab-cases" class="tab-content active">
-            <div class="section-title">Головний кейс</div>
-            <div class="cases-grid">
-                
-                <div class="case-card">
-                    <div class="case-info">
-                        <h4>🎁 Кейс з призами</h4>
-                        <p>Ціна: 20 ⭐</p>
-                    </div>
-                    <button class="open-case-btn" onclick="openCase()">Відкрити</button>
+            <div class="section-title">🎡 Колесо Фортуни (Ціна: 20⭐)</div>
+            
+            <div class="wheel-wrapper">
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="fortuneWheel"></div>
                 </div>
-
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">Крутити!</button>
             </div>
         </div>
 
@@ -293,25 +286,23 @@
 
     </div>
 
-    <!-- АНІМАЦІЯ РУЛЕТКИ (МОДАЛКА) -->
+    <!-- МОДАЛКА РЕЗУЛЬТАТУ -->
     <div class="roulette-overlay" id="rouletteOverlay">
         <div class="roulette-window">
-            <h3 style="margin-bottom: 10px;">Відкриття кейсу...</h3>
-            <div class="spinner-container">
-                <div class="spinner-pointer"></div>
-                <div class="spinner-track" id="spinnerTrack"></div>
-            </div>
-            <p id="winResultText" style="font-size: 15px; font-weight: bold; color: #facc15; margin-top: 15px;"></p>
+            <h3 style="margin-bottom: 10px;">Результат обертання</h3>
+            <div id="modalPrizeContent" style="margin: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 8px;"></div>
+            <p id="winResultText" style="font-size: 16px; font-weight: bold; color: #facc15;"></p>
             <a id="claimBtn" class="claim-btn" href="#" target="_blank">📲 Забрати приз у адміна</a>
-            <button id="closeModalBtn" style="background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-top: 15px; cursor: pointer; display: none;" onclick="closeOverlay()">Закрити</button>
+            <br>
+            <button id="closeModalBtn" style="background: #334155; color: white; border: none; padding: 8px 20px; border-radius: 8px; margin-top: 15px; cursor: pointer;" onclick="closeOverlay()">Закрити</button>
         </div>
     </div>
 
     <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('cases', this)">
-            <span class="nav-icon">🎁</span>
-            <span>Кейси</span>
+            <span class="nav-icon">🎡</span>
+            <span>Колесо</span>
         </button>
         <button class="nav-item" onclick="switchTab('inventory', this)">
             <span class="nav-icon">🏆</span>
@@ -324,23 +315,24 @@
     // ВСТАВ СВІЙ ТЕЛЕГРАМ НІКНЕЙМ ТУТ (без @)
     const ADMIN_USERNAME = "ваш_телеграм_нік";
 
-    let stars = parseInt(localStorage.getItem('case_stars')) || 100;
-    let inventory = JSON.parse(localStorage.getItem('case_inventory')) || [];
+    let stars = parseInt(localStorage.getItem('wheel_stars')) || 100;
+    let inventory = JSON.parse(localStorage.getItem('wheel_inventory')) || [];
+    let currentRotation = 0;
 
-    // Чіткий список усіх можливих призів
-    const allPrizes = [
-        { id: 'star5', name: '+5 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 5 },
-        { id: 'star10', name: '+10 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 10 },
-        { id: 'star15', name: '+15 зірок', color: '#38bdf8', icon: '⭐', type: 'stars', value: 15 },
-        { id: 'bear', name: 'Ведмідь', color: '#facc15', icon: '🐻', type: 'item', price: 15 },
-        { id: 'heart', name: 'Сердце', color: '#ef4444', icon: '💝', type: 'item', price: 15 },
-        { id: 'rocket', name: 'Ракета', color: '#a855f7', icon: '🚀', type: 'item', price: 50 }
+    // Список призів з точними шансами: 1 зірка (50%), 3 зірки (30%), 5 зірок (20%), і твої файли картинки з відповідними шансами
+    const prizes = [
+        { id: 'star1', name: '1 зірка', type: 'stars', value: 1, chance: 50, color: '#38bdf8', isImg: false, display: '⭐' },
+        { id: 'star3', name: '3 зірки', type: 'stars', value: 3, chance: 30, color: '#a855f7', isImg: false, display: '⭐⭐⭐' },
+        { id: 'star5', name: '5 зірок', type: 'stars', value: 5, chance: 20, color: '#22c55e', isImg: false, display: '⭐⭐⭐⭐⭐' },
+        { id: 'item1', name: 'Річ #1', type: 'item', price: 20, chance: 2.0, color: '#f59e0b', isImg: true, src: '1790461326422.png-1790461350631.png' },
+        { id: 'item2', name: 'Річ #2', type: 'item', price: 50, chance: 0.9, color: '#ec4899', isImg: true, src: '1790461370604.png-1790461398212.png' },
+        { id: 'item3', name: 'Річ #3', type: 'item', price: 100, chance: 0.1, color: '#ef4444', isImg: true, src: '1790461443917.png-1790461419606.png' }
     ];
 
     function updateUI() {
         document.getElementById('ui-stars').innerText = stars;
-        localStorage.setItem('case_stars', stars);
-        localStorage.setItem('case_inventory', JSON.stringify(inventory));
+        localStorage.setItem('wheel_stars', stars);
+        localStorage.setItem('wheel_inventory', JSON.stringify(inventory));
         renderInventory();
     }
 
@@ -357,84 +349,87 @@
         element.classList.add('active');
     }
 
-    function openCase() {
-        const casePrice = 20;
-        if (stars < casePrice) {
+    function spinWheel() {
+        const spinPrice = 20;
+        if (stars < spinPrice) {
             alert('Недостатньо зірок! Натисніть "+ Безкоштовно".');
             return;
         }
 
-        stars -= casePrice;
+        stars -= spinPrice;
         updateUI();
 
-        const overlay = document.getElementById('rouletteOverlay');
-        const track = document.getElementById('spinnerTrack');
-        const resultText = document.getElementById('winResultText');
-        const claimBtn = document.getElementById('claimBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+        const spinBtn = document.getElementById('spinBtn');
+        spinBtn.disabled = true;
 
-        resultText.innerText = "";
-        claimBtn.style.display = 'none';
-        closeModalBtn.style.display = 'none';
-        overlay.style.display = 'flex';
+        // Визначаємо виграш за шансами
+        let randomPercent = Math.random() * 100;
+        let cumulative = 0;
+        let winningIndex = 0;
 
-        // Формуємо стрічку рулетки з випадкових призів
-        let generatedItems = [];
-        let html = '';
-        for (let i = 0; i < 50; i++) {
-            let randPrize = allPrizes[Math.floor(Math.random() * allPrizes.length)];
-            generatedItems.push(randPrize);
-            html += `
-                <div class="spinner-item" style="border-color: ${randPrize.color}">
-                    <span style="font-size: 28px;">${randPrize.icon}</span>
-                    <span style="color: ${randPrize.color}">${randPrize.name}</span>
-                </div>
-            `;
+        for (let i = 0; i < prizes.length; i++) {
+            cumulative += prizes[i].chance;
+            if (randomPercent <= cumulative) {
+                winningIndex = i;
+                break;
+            }
         }
-        track.innerHTML = html;
 
-        // Визначаємо точний виграшний елемент на позиції 42
-        let winningIndex = 42;
-        let winningItem = generatedItems[winningIndex];
+        let winningPrize = prizes[winningIndex];
 
-        let itemWidth = 100;
-        let centerOffset = (400 / 2) - (itemWidth / 2);
-        let targetX = -(winningIndex * itemWidth) + centerOffset + (Math.random() * 60 - 30);
+        // Розраховуємо кут повороту (кожен сектор має рівний кут)
+        let sectorAngle = 360 / prizes.length;
+        let targetSectorAngle = winningIndex * sectorAngle + (sectorAngle / 2);
+        
+        let extraSpins = 360 * 5;
+        let finalRotation = currentRotation + extraSpins + (360 - (currentRotation % 360)) + (360 - targetSectorAngle);
+        
+        currentRotation = finalRotation;
 
-        track.style.transition = 'none';
-        track.style.transform = `translateX(0px)`;
+        const wheel = document.getElementById('fortuneWheel');
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
 
+        // Показуємо результат після завершення анімації (4 секунди)
         setTimeout(() => {
-            track.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.15, 1)';
-            track.style.transform = `translateX(${targetX}px)`;
-        }, 50);
+            const overlay = document.getElementById('rouletteOverlay');
+            const resultText = document.getElementById('winResultText');
+            const modalContent = document.getElementById('modalPrizeContent');
+            const claimBtn = document.getElementById('claimBtn');
 
-        // Після завершення анімації видаємо суто те, що зупинилося на стрілці
-        setTimeout(() => {
-            if (winningItem.type === 'stars') {
-                stars += winningItem.value;
+            claimBtn.style.display = 'none';
+
+            if (winningPrize.isImg) {
+                modalContent.innerHTML = `<img src="${winningPrize.src}" style="width: 64px; height: 64px; object-fit: contain;">`;
+            } else {
+                modalContent.innerHTML = `<div style="font-size: 32px;">${winningPrize.display}</div>`;
+            }
+
+            if (winningPrize.type === 'stars') {
+                stars += winningPrize.value;
                 updateUI();
-                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (зараховано на баланс!)`;
+                resultText.innerHTML = `Вітаємо! Ви виграли <span style="color:${winningPrize.color}">${winningPrize.name}</span>! Зараховано на баланс.`;
             } else {
                 let uniqueId = Math.floor(100000 + Math.random() * 900000);
-                resultText.innerHTML = `Ви виграли: <span style="color:${winningItem.color}">${winningItem.icon} ${winningItem.name}</span> (додано в інвентар!)`;
+                resultText.innerHTML = `Вітаємо! Ви виграли рідкісний предмет!`;
                 
                 inventory.push({
-                    name: winningItem.name,
-                    icon: winningItem.icon,
-                    color: winningItem.color,
-                    price: winningItem.price,
+                    name: winningPrize.name,
+                    color: winningPrize.color,
+                    price: winningPrize.price,
+                    isImg: true,
+                    src: winningPrize.src,
                     id: uniqueId
                 });
                 updateUI();
 
-                let msg = encodeURIComponent(`Привіт! Я виграв у грі приз: ${winningItem.name} (ID: #${uniqueId}). Чекаю на видачу!`);
+                let msg = encodeURIComponent(`Привіт! Я виграв у Колесі Фортуни приз: ${winningPrize.name} (ID: #${uniqueId}). Чекаю на видачу!`);
                 claimBtn.href = `https://t.me/${ADMIN_USERNAME}?text=${msg}`;
                 claimBtn.style.display = 'inline-block';
             }
 
-            closeModalBtn.style.display = 'inline-block';
-        }, 4200);
+            overlay.style.display = 'flex';
+            spinBtn.disabled = false;
+        }, 4000);
     }
 
     function closeOverlay() {
@@ -444,16 +439,16 @@
     function renderInventory() {
         const list = document.getElementById('inventory-list');
         if (inventory.length === 0) {
-            list.innerHTML = `<p style="color: #94a3b8; grid-column: span 2; text-align: center; padding: 20px;">Поки що пусто. Відкрийте кейс!</p>`;
+            list.innerHTML = `<p style="color: #94a3b8; grid-column: span 2; text-align: center; padding: 20px;">Поки що пусто. Спробуйте покрутити колесо!</p>`;
             return;
         }
 
         list.innerHTML = inventory.map((item, index) => `
             <div class="inventory-item" style="border-color: ${item.color}">
-                <span style="font-size: 32px;">${item.icon}</span>
+                <img src="${item.src}" class="item-img" alt="Item">
                 <div class="item-name" style="color: ${item.color}">${item.name}</div>
                 <div style="font-size: 11px; color: #94a3b8;">ID: #${item.id}</div>
-                <a href="https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent(`Привіт! Забираю свій приз: ${item.name} (ID: #${item.id})`)}" target="_blank" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:5px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px;">Забрати у адміна</a>
+                <a href="https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent(`Привіт! Забираю свій приз з колеса: ${item.name} (ID: #${item.id})`)}" target="_blank" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:5px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px; width:100%; text-align:center;">Забрати у адміна</a>
                 <button class="sell-btn" onclick="sellItem(${index})">Продати за ${item.price}⭐</button>
             </div>
         `).join('');
